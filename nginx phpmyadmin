@@ -1,0 +1,250 @@
+\\konfigurasi phpmyadmin nginx
+
+\\install dependencies
+
+# sudo apt install software-properties-common curl apt-transport-https -y
+
+\\install nginx full software
+# apt install nginx-core nginx-common nginx nginx-full -y
+# systemctl status nginx
+
+//enable service nginx
+# systemctl enable nginx --now 
+
+\\add nginx command in root user 
+# nano /etc/login.defs
+\\add line 
+```
+ALWAYS_SET_PATH yes
+```
+
+\\test configuration nginx
+# nginx -t 
+output ::
+```
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+```
+
+\\install mariadb 
+# apt install mariadb-server mariadb-client -y
+# systemctl status mariadb
+# systemctl enable mariadb --now
+
+\\run mariadb security scripts
+# mysql_secure_installation
+
+output ::
+```
+NOTE: RUNNING ALL PARTS OF THIS SCRIPT IS RECOMMENDED FOR ALL MariaDB
+      SERVERS IN PRODUCTION USE!  PLEASE READ EACH STEP CAREFULLY!
+
+In order to log into MariaDB to secure it, we'll need the current
+password for the root user. If you've just installed MariaDB, and
+haven't set the root password yet, you should just press enter here.
+
+Enter current password for root (enter for none): 
+OK, successfully used password, moving on...
+
+Setting the root password or using the unix_socket ensures that nobody
+can log into the MariaDB root user without the proper authorisation.
+
+You already have your root account protected, so you can safely answer 'n'.
+
+Switch to unix_socket authentication [Y/n] Y <---- Type Y then press the ENTER KEY.
+Enabled successfully!
+Reloading privilege tables..
+ ... Success!
+
+
+You already have your root account protected, so you can safely answer 'n'.
+
+Change the root password? [Y/n] Y <---- Type Y then press the ENTER KEY.
+New password: 
+Re-enter new password: 
+Password updated successfully!
+Reloading privilege tables..
+ ... Success!
+
+
+By default, a MariaDB installation has an anonymous user, allowing anyone
+to log into MariaDB without having to have a user account created for
+them.  This is intended only for testing, and to make the installation
+go a bit smoother.  You should remove them before moving into a
+production environment.
+
+Remove anonymous users? [Y/n] Y <---- Type Y then press the ENTER KEY.
+ ... Success!
+
+Normally, root should only be allowed to connect from 'localhost'.  This
+ensures that someone cannot guess at the root password from the network.
+
+Disallow root login remotely? [Y/n] Y <---- Type Y then press the ENTER KEY.
+ ... Success!
+
+By default, MariaDB comes with a database named 'test' that anyone can
+access.  This is also intended only for testing, and should be removed
+before moving into a production environment.
+
+Remove test database and access to it? [Y/n] Y <---- Type Y then press the ENTER KEY.
+ - Dropping test database...
+ ... Success!
+ - Removing privileges on test database...
+ ... Success!
+
+Reloading the privilege tables will ensure that all changes made so far
+will take effect immediately.
+
+Reload privilege tables now? [Y/n] Y <---- Type Y then press the ENTER KEY.
+ ... Success!
+
+Cleaning up...
+
+All done!  If you've completed all of the above steps, your MariaDB
+installation should now be secure.
+
+Thanks for using MariaDB!
+```
+
+\\install php repository & GPG key
+# apt install -y curl
+# apt install -y sudo
+# curl -sSL https://packages.sury.org/php/README.txt | sudo bash -x
+output ::
+```
+++ whoami
++ '[' root '!=' root ']'
++ apt-get update
+Hit:1 http://kartolo.sby.datautama.net.id/debian bullseye InRelease
+......................
+```
+
+# apt update
+# apt upgrade
+
+\\install php and php-fpm
+\\php version 7.4
+# sudo apt install php7.4-fpm php7.4-mbstring php7.4-bcmath php7.4-xml php7.4-mysql php7.4-common php7.4-gd php7.4-cli php7.4-curl php7.4-zip php7.4-gd -y
+
+\\php version 8.0 (recommended)
+# apt install php8.0-fpm php8.0-mbstring php8.0-bcmath php8.0-xml php8.0-mysql php8.0-common php8.0-gd php8.0-cli php8.0-curl php8.0-zip php8.0-gd -y
+
+\\php version 8.1 (recommended)
+# apt install php8.1-fpm php8.1-mbstring php8.1-bcmath php8.1-xml php8.1-mysql php8.1-common php8.1-gd php8.1-cli php8.1-curl php8.1-zip php8.1-gd -y
+
+\\verification php install
+# systemctl status php{version}-fpm
+
+\\set mariadb started on boot
+# systemctl enable php{version}-fpm --now
+
+\\create phpmyadmin username superuser
+# mysql -u root
+\\next create a database mariadb terminal
+```
+CREATE USER PMAUSER IDENTIFIED BY 'password here change';
+```
+\\grant permission
+```
+GRANT ALL PRIVILEGES ON *.* TO 'PMAUSER'@'localhost' IDENTIFIED BY 'password here change' WITH GRANT OPTION;
+```
+\\flush privileges
+```
+FLUSH PRIVILEGES;
+```
+\\exit mariadb terminal
+```
+QUIT;
+```
+
+\\download phpmyadmin source with checking version 
+```
+DATA="$(wget https://www.phpmyadmin.net/home_page/version.txt -q -O-)"
+URL="$(echo $DATA | cut -d ' ' -f 3)"
+VERSION="$(echo $DATA | cut -d ' ' -f 1)"
+wget https://files.phpmyadmin.net/phpMyAdmin/${VERSION}/phpMyAdmin-${VERSION}-all-languages.tar.gz
+```
+\\configure phpmyadmin
+# tar xvf phpMyAdmin-${VERSION}-all-languages.tar.gz
+# mv phpMyAdmin-* /var/www/phpmyadmin
+\\create directory phpmyadmin code 
+# mkdir -p /var/www/phpmyadmin/tmp
+
+\\copy config sample to config.inc.php
+# cp /var/www/phpmyadmin/config.sample.inc.php /var/www/phpmyadmin/config.inc.php
+\\open file configuration phpmyadmin
+# nano /var/www/phpmyadmin/config.inc.php
+\\cari baris blowfish_secret
+```
+$cfg['blowfish_secret'] = ''; /* YOU MUST FILL IN THIS FOR COOKIE AUTH! */
+```
+\\You will need to assign a string of 32 random characters between the single quote marks. The easiest way to achieve this is using the program pwgen. To install the pwgen package, use the fo
+# apt install pwgen -y
+\\selesai install, jalankan perintah
+# pwgen -s 32 1
+output contoh ::
+```
+K8ZEWW6NZ6OhLFbs5m19YqDB932EyGRq
+```
+\\lalu isikan pada baris di file config.inc.php
+# nano /var/www/phpmyadmin/config.inc.php
+# $cfg['blowfish_secret'] = 'K8ZEWW6NZ6OhLFbs5m19YqDB932EyGRq'; /* YOU MUST FILL IN THIS FOR COOKIE AUTH! */
+\\If your da is located on another server located in your network, find and change the line $cfg[‘Servers’][$i][‘host’] = to that of the private IP address. Example below:
+```
+$cfg['Servers'][$i]['host'] = '127.0.0.1';
+```
+
+\\set phpmyadmin file permissions
+# chown -R www-data:www-data /var/www/phpmyadmin/
+# find /var/www/phpmyadmin/ -type d -exec chmod 755 {} \;
+# find /var/www/phpmyadmin/ -type f -exec chmod 644 {} \;
+
+\\buat server virtual host untuk phpmyadmin
+# nano /etc/nginx/sites-available/phpmyadmin.conf
+\\tambahkan seperti di bawah ini
+```
+server {
+  listen 80;
+  listen [::]:80;
+  server_name pma.example.com; \\ganti dengan server_name sesuaikan dari dns server
+  root /var/www/phpmyadmin/;
+  index index.php index.html index.htm index.nginx-debian.html;
+
+  access_log /var/log/nginx/phpmyadmin_access.log;
+  error_log /var/log/nginx/phpmyadmin_error.log;
+
+  location / {
+    try_files $uri $uri/ /index.php;
+  }
+
+  location ~ ^/(doc|sql|setup)/ {
+    deny all;
+  }
+
+  location ~ \.php$ {
+    fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    include fastcgi_params;
+    include snippets/fastcgi-php.conf;
+  }
+
+  location ~ /\.ht {
+    deny all;
+  }
+}
+```
+\\create symlink 
+# ln -s /etc/nginx/sites-available/phpmyadmin.conf /etc/nginx/sites-enabled/
+
+\\test config nginx
+# nginx -t
+# systemctl restart nginx
+
+
+
+
+
+
+
+
+
