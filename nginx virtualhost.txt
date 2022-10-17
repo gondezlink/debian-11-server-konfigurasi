@@ -40,8 +40,7 @@ root@www:~# mkdir /var/www/home.gondez.net
 root@www:~# cd /etc/nginx/sites-enabled
 
 //buat link directory virtual host ke site enabled directory
-root@www:/etc/nginx/sites-enabled# ln -s /etc/nginx/sites-available/home.gondez.
-net.conf ./
+root@www:/etc/nginx/sites-enabled# ln -s /etc/nginx/sites-available/home.gondez.net.conf ./
 root@www:/etc/nginx/sites-enabled# systemctl restart nginx
 
 //buat sample page web server
