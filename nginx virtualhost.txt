@@ -11,7 +11,7 @@
 # cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.backup
 # nano -l /etc/nginx/sites-available/default
 // line 46 : change to your hostname
-server_name www.home.gondez.net;
+server_name www.gondez.net;
 
 // restart ngix service daemon
 # systemctl restart nginx
@@ -40,8 +40,7 @@ root@www:~# mkdir /var/www/home.gondez.net
 root@www:~# cd /etc/nginx/sites-enabled
 
 //buat link directory virtual host ke site enabled directory
-root@www:/etc/nginx/sites-enabled# ln -s /etc/nginx/sites-available/home.gondez.
-net.conf ./
+root@www:/etc/nginx/sites-enabled# ln -s /etc/nginx/sites-available/home.gondez.net.conf ./
 root@www:/etc/nginx/sites-enabled# systemctl restart nginx
 
 //buat sample page web server

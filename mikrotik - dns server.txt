@@ -1,21 +1,95 @@
+# DNS forwarder and mikrotik forward DNS
+topology :
+ISP ---- router --- dns server <br />
+-------gw 10.10.10.100 ----| \
+---------- | --------------|\
+-----------| ------ip 10.10.10.100/24 \
+-----------| --------------\
+---------client------------\
+ ------ip 10.10.10.0/24 ---\
+	
+**Example configuration DNS Server**
+**file forward /etc/bind/db.192.gondez** 
+ ```
+ $TTL 604800 @ IN SOA gondez.net. root.gondez.net. ( 1 ; Serial 604800 ; 
+						 Refresh 86400 ; 
+						 Retry 2419200 ; 
+						 Expire 604800 ) ; 
+						 Negative Cache TTL ; 
+@ 	IN 	NS 	gondez.net. 
+100 	IN 	PTR 	gondez.net.
+```
+**file reverse /etc/bind/db.gondez**
+```
+; 
+; 
+BIND data file for local loopback interface ; 
+$TTL 604800 @ IN SOA gondez.net. root.gondez.net. ( 2 ; Serial 604800 ; 
+							Refresh 86400 ; 
+							Retry 2419200 ; 
+							Expire 604800 ) ; 
+							Negative Cache TTL ; 
+@ 			IN 		NS 		gondez.net. 
+@ 			IN 		A 		10.10.10.100 
+www 			IN 		A 		10.10.10.100 
+ftp 			IN 		A 		10.10.10.100 
+mail 			IN 		MX 		10.10.10.100 
+cloud 			IN 		A 		10.10.10.100 
+home 			IN 		A 		10.10.10.100
+```
+**file zone /etc/bind named.conf.local**
+```
+zone "10.10.10.in-addr.arpa" { type master; 
+		file "/etc/bind/db.192.gondez"; };
+zone "gondez.net" { type master; 
+		file "/etc/bind/db.gondez"; };
+```
+**file /etc/bind/named.conf.options**
+```
+options { directory "/var/cache/bind";
 
-chain=dstnat action=dst-nat to-addresses=10.10.10.100 to-ports=53 protocol=udp src-address=!10.10.10.100 dst-port=53 log=no log-prefix="" 
-chain=dstnat action=dst-nat to-addresses=10.10.10.100 to-ports=53 protocol=tcp src-address=!10.10.10.100 dst-port=53 log=no log-prefix="" 
-chain=srcnat action=masquerade protocol=udp src-address=10.10.10.0/24 dst-address=10.10.10.100 dst-port=53 log=no log-prefix="" 
-chain=srcnat action=masquerade protocol=tcp src-address=10.10.10.0/24 dst-address=10.10.10.100 dst-port=53 log=no log-prefix=""
+// If there is a firewall between you and nameservers you want
+// to talk to, you may need to fix the firewall to allow multiple
+// ports to talk.  See http://www.kb.cert.org/vuls/id/800113
 
-;
-; BIND reverse data file for local loopback interface
-;
-$TTL	604800
-@	IN	SOA	gondez.net. root.gondez.net. (
-			      1		; Serial
-			 604800		; Refresh
-			  86400		; Retry
-			2419200		; Expire
-			 604800 )	; Negative Cache TTL
-;
-@	IN	NS	gondez.net.
-100	IN	PTR	gondez.net.
+// If your ISP provided one or more IP addresses for stable 
+// nameservers, you probably want to use them as forwarders.  
+// Uncomment the following block, and insert the addresses replacing 
+// the all-0's placeholder.
 
------------------------------------------------------
+forwarders {
+	8.8.8.8;
+	8.8.4.4;
+};
+
+//========================================================================
+// If BIND logs error messages about the root key being expired,
+// you will need to update your keys.  See https://www.isc.org/bind-keys
+//========================================================================
+dnssec-validation no;
+allow-query { any; };
+allow-query-cache { any; };
+allow-recursion { any; };
+auth-nxdomain no;
+listen-on-v6 { any; };
+```
+***mikrotik NAT redirect to DNS Server***
+```
+chain=dstnat action=dst-nat to-addresses=10.10.10.100 to-ports=53 
+      protocol=udp src-address=!10.10.10.100 dst-port=53 log=no log-prefix="" 
+
+ chain=dstnat action=dst-nat to-addresses=10.10.10.100 to-ports=53 
+      protocol=tcp src-address=!10.10.10.100 dst-port=53 log=no log-prefix="" 
+
+ chain=srcnat action=masquerade to-ports=53 protocol=udp 
+      src-address=10.10.10.0/24 dst-port=53 log=no log-prefix="" 
+
+ chain=srcnat action=masquerade to-ports=53 protocol=tcp 
+      src-address=10.10.10.0/24 dst-port=53 log=no log-prefix="" 
+
+ chain=srcnat action=masquerade out-interface=ether1 log=no log-prefix="" 
+ ```
+
+ ![image](https://user-images.githubusercontent.com/34673946/194979932-ba7d44c6-916b-470c-86b4-1d73109c05e0.png)
+ ![image](https://user-images.githubusercontent.com/34673946/194979955-75edd3f6-e9cd-4ab4-9e2d-9169613b143a.png)
+
