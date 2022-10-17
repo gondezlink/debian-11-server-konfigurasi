@@ -1,50 +1,55 @@
 //nginx virtual host
 //ip server nginx web server 10.10.10.100
+//contoh nama domain webserver www.home.gondez.net
 
 //instalasi nginx web server
 
 # apt -y install nginx
 
 //Configure basic settings
-
-# nano /etc/nginx/sites-available/default
+//copy atau backup konfigurasi awal/default 
+# cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.backup
+# nano -l /etc/nginx/sites-available/default
 // line 46 : change to your hostname
-server_name www.gondez.net;
+server_name www.home.gondez.net;
 
 // restart ngix service daemon
 # systemctl restart nginx
 
 //configure nginx
 //configure nginx virtual host
-# nano /etc/nginx/sites-available/gondez.net.conf
+//buatlah konfigurasi dengan nama home.gondez.net.conf
+# nano /etc/nginx/sites-available/home.gondez.net.conf
 //tambahkan sebagai berikut
 
 server {
     listen       80;
-    server_name  www.gondez.net;
+    server_name  www.home.gondez.net;
 
     location / {
-        root   /var/www/gondez.net;
+        root   /var/www/home.gondez.net;
         index  index.html index.htm;
     }
 }
+
 //simpan dan close ctrl w+q
-//buat directory untuk virtual host
-root@www:~# mkdir /var/www/virtual.host
+//buat directory untuk hosting home.gondez.net
+root@www:~# mkdir /var/www/home.gondez.net
+
 //masuk directory sites-enabled
 root@www:~# cd /etc/nginx/sites-enabled
+
 //buat link directory virtual host ke site enabled directory
-root@www:/etc/nginx/sites-enabled# ln -s /etc/nginx/sites-available/virtual
-host.conf ./
+root@www:/etc/nginx/sites-enabled# ln -s /etc/nginx/sites-available/home.gondez.
+net.conf ./
 root@www:/etc/nginx/sites-enabled# systemctl restart nginx
 
 //buat sample page web server
-
-root@www:~# nano /var/www/virtual.host/index.html
+root@www:~# nano /var/www/home.gondez.net/index.html
 <html>
 <body>
 <div style="width: 100%; font-size: 40px; font-weight: bold; text-align: center;">
-Nginx Virtual Host Test Page
+home Gondez.net Nginx Virtual Host Test Page
 </div>
 </body>
 </html>
