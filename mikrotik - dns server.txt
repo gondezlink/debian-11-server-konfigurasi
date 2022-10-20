@@ -36,6 +36,7 @@ ftp 			IN 		A 		10.10.10.100
 mail 			IN 		MX 		10.10.10.100 
 cloud 			IN 		A 		10.10.10.100 
 home 			IN 		A 		10.10.10.100
+db				IN		A 	  	10.10.10.100
 ```
 **file zone /etc/bind named.conf.local**
 ```

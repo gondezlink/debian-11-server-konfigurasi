@@ -1,3 +1,6 @@
+
+\\https://github.com/gondezlink/debian-11-server-konfigurasi/
+
 \\konfigurasi phpmyadmin nginx
 
 \\install dependencies
@@ -19,7 +22,8 @@ ALWAYS_SET_PATH yes
 ```
 
 \\test configuration nginx
-# nginx -t 
+# nginx -t
+
 output ::
 ```
 nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
@@ -135,7 +139,7 @@ Hit:1 http://kartolo.sby.datautama.net.id/debian bullseye InRelease
 \\verification php install
 # systemctl status php{version}-fpm
 
-\\set mariadb started on boot
+\\set php started on boot
 # systemctl enable php{version}-fpm --now
 
 \\create phpmyadmin username superuser
@@ -159,13 +163,14 @@ QUIT;
 
 \\download phpmyadmin source with checking version 
 ```
-DATA="$(wget https://www.phpmyadmin.net/home_page/version.txt -q -O-)"
-URL="$(echo $DATA | cut -d ' ' -f 3)"
-VERSION="$(echo $DATA | cut -d ' ' -f 1)"
-wget https://files.phpmyadmin.net/phpMyAdmin/${VERSION}/phpMyAdmin-${VERSION}-all-languages.tar.gz
+# DATA="$(wget https://www.phpmyadmin.net/home_page/version.txt -q -O-)"
+# URL="$(echo $DATA | cut -d ' ' -f 3)"
+# VERSION="$(echo $DATA | cut -d ' ' -f 1)"
+# wget https://files.phpmyadmin.net/phpMyAdmin/${VERSION}/phpMyAdmin-${VERSION}-all-languages.tar.gz
 ```
 \\configure phpmyadmin
-# tar xvf phpMyAdmin-${VERSION}-all-languages.tar.gz
+# tar -xvf phpMyAdmin-${VERSION}-all-languages.tar.gz
+# mkdir /var/www/phpmyadmin
 # mv phpMyAdmin-* /var/www/phpmyadmin
 \\create directory phpmyadmin code 
 # mkdir -p /var/www/phpmyadmin/tmp
@@ -206,7 +211,7 @@ $cfg['Servers'][$i]['host'] = '127.0.0.1';
 server {
   listen 80;
   listen [::]:80;
-  server_name pma.example.com; \\ganti dengan server_name sesuaikan dari dns server
+  server_name db.gondez.net; \\ganti dengan server_name sesuaikan dari dns server
   root /var/www/phpmyadmin/;
   index index.php index.html index.htm index.nginx-debian.html;
 
@@ -240,7 +245,7 @@ server {
 # nginx -t
 # systemctl restart nginx
 
-
+buka browser akses ke db.gondez.net
 
 
 
