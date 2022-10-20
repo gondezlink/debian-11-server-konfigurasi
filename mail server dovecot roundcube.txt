@@ -1,0 +1,132 @@
+//mail server debian 11, dovecot, roundcube
+//example hostname gondez.net
+# cat /etc/hostname
+output ::
+gondez.net
+
+//set domain for mail server
+//add in db forward and db reverse bind file
+// tambahkan konfig di file foraward bind /etc/bind/db.gondez
+# nano /etc/bind/db.gondez
+```
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     gondez.net. root.gondez.net. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      gondez.net.
+@       IN      A       10.10.10.100
+@       IN      MX      10      mail.gondez.net //tambahkan baris ini
+www     IN      A       10.10.10.100
+ftp     IN      A       10.10.10.100
+mail    IN      A       10.10.10.100            //tambahkan baris ini
+cloud   IN      A       10.10.10.100
+home    IN      A       10.10.10.100
+db      IN      A       10.10.10.100
+```
+// tambahkan konfig mail di file reverse bind /etc/bind/db.192.gondez
+# nano /etc/bind/db.192.gondez
+```
+;
+; BIND reverse data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     gondez.net. root.gondez.net. (
+                              1         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      gondez.net.
+100     IN      PTR     gondez.net.
+100     IN      PTR     mail.gondez.net.        //tambahkan baris ini
+```
+//install postfix dan  dovecot 
+# apt install -y postfix dovecot-imapd dovecot-pop3d
+
+//pada saat instalasi postfix akan terbuka halaman konfigurasi untuk postfix
+//jika tidak terbuka dapat menggunakan perintah :
+# dpkg-reconfigure postfix
+
+//konfigurasi postfix
+```
+General type of mail                    : Internet Site
+system mail name                        : gondez.net
+other destinations to accept mail       : gondez.net, gondez.net, localhost.net, , localhost
+force synchronous update on mail queue  : no
+local network                           :  127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128__
+mailbox size limit                      : 0
+local address extension character       :
+internet protocol to use                : all
+```
+//buatlah user baru 
+# adduser fery
+
+\\lakukan test dengan aplikasi telnet
+\\install terlebih dahulu aplikasi telnet
+# apt install -y telnet
+
+\\lakukan tahapan seperti di bawah ini
+```
+root@gondez:/etc/bind# telnet mail.gondez.net 25
+Trying 10.10.10.100...
+Connected to mail.gondez.net.
+Escape character is '^]'.
+220 gondez.net ESMTP Postfix (Debian/GNU)
+mail from:gondez
+250 2.1.0 Ok
+rcpt to:fery
+250 2.1.5 Ok
+data
+354 End data with <CR><LF>.<CR><LF>
+ayo !!!
+.
+250 2.0.0 Ok: queued as 641548BFF
+quit
+221 2.0.0 Bye
+Connection closed by foreign host.
+```
+```
+root@gondez:/etc/bind# telnet mail.gondez.net 110
+Trying 10.10.10.100...
+Connected to mail.gondez.net.
+Escape character is '^]'.
++OK Dovecot (Debian) ready.
+user fery
++OK
+pass 12345
++OK Logged in.
+stat
++OK 1 384
+retr 2
+-ERR There's no message 2.
+stat
++OK 1 384
+retr 1
++OK 384 octets
+Return-Path: <gondez@gondez.net>
+X-Original-To: fery
+Delivered-To: fery@gondez.net
+Received: from mail.gondez.net (mail.gondez.net [10.10.10.100])
+        by gondez.net (Postfix) with SMTP id 641548BFF
+        for <fery>; Thu, 20 Oct 2022 13:10:56 +0700 (WIB)
+Message-Id: <20221020061110.641548BFF@gondez.net>
+Date: Thu, 20 Oct 2022 13:10:56 +0700 (WIB)
+From: gondez@gondez.net
+
+ayo !!!
+.
+quit
++OK Logging out.
+```
+
+
+
+
